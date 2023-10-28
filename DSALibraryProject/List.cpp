@@ -259,7 +259,112 @@ public:
 };
 template<class T>
 class D2LListWOTail: public List<T> {
-
+protected:
+	struct Node {
+		T data;
+		Node* next;
+		Node* prev;
+		Node(T && data, Node* next = nullptr, Node* prev = nullptr) : data(std::move(data)),next(next),prev(prev) {}
+		Node(const T& data, Node* next = nullptr, Node* prev = nullptr) : data(data), next(next), prev(prev) {}
+	};
+	Node* head;
+	int nE;
+public:
+	D2LListWOTail(Node* head,int nE): head(head),nE(nE) {}
+	D2LListWOTail() : head(nullptr),nE(0) {}
+	~D2LListWOTail() { this->clear(); }
+	int size() { return nE; }
+	bool empty() { return !nE;}
+	void clear() {
+		while (nE) {
+			Node* temp = head;
+			head = head->next;
+			delete temp;
+			--nE;
+		}
+	}
+	T& operator[](int idx) {
+		if (idx < 0 || idx >= nE) throw out_of_range("Index out of range");
+		else {
+			Node* temp = head;
+			while (idx) {
+				temp = temp->next;
+				--idx;
+			}
+			return temp->data;
+		}
+	}
+	void traverse(function<void(T& data)> op) {
+		Node* temp = head;
+		while (temp) {
+			op(temp->data);
+			temp = temp->next;
+		}
+	}
+	void insert(const T& data, int idx) {
+		if (idx < 0 || idx > nE) throw out_of_range("Index out of range");
+		else {
+			Node** temp = &head;
+			for (int i = 0; i < idx; ++i) temp = &((*temp)->next);
+			if (*temp == nullptr) *temp = new Node(data);
+			else *temp = new Node(data, *temp,(*temp)->prev);
+			++nE;
+		}
+	}
+	void remove(int idx) {
+		if (idx < 0 || idx >= nE) throw out_of_range("Index out of range");
+		else {
+			Node** temp = &head;
+			while (idx) {
+				--idx;
+				temp = &((*temp)->next);
+			}
+			Node* rmNode = *temp;
+			*temp = rmNode->next;
+			if(*temp) (*temp)->prev = rmNode->prev;
+			delete rmNode;
+			--nE;
+		}
+	}
+	void concat(List<T>* other) {
+		Node** temp = &head;
+		while (*temp) {
+			temp = &((*temp)->next);
+		}
+		other->traverse(
+			[&temp](T& data) {
+				if (*temp == nullptr) *temp = new Node(data);
+				else {
+					(*temp)->next = new Node(data,nullptr,*temp);
+					temp = &((*temp)->next);
+				}
+			}
+		);
+		nE += other->size();
+	}
+	List<T>* split(int idx) {
+		Node** temp = &head;
+		int new_nE = nE - idx;
+		nE = idx;
+		while (idx) {
+			temp = &((*temp)->next);
+			--idx;
+		}
+		Node* newNode = *temp;
+		*temp = nullptr;
+		return new D2LListWOTail(newNode, new_nE);
+	}
+	void reverse() {
+		Node* curr = head, * prev = nullptr, * next = nullptr;
+		while (curr) {
+			next = curr->next;
+			curr->next = prev;
+			curr->prev = next;
+			prev = curr;
+			curr = next;
+		}
+		head = prev;
+	}
 };
 template<class T>
 class D2LListWTail : public List<T> {
