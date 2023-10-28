@@ -6,40 +6,16 @@
 
 int main() {
 	//do sth with the datastructure
-	List<int>* temp = new D2LListCir<int>;
-	for (int i = 0; i < 10; ++i) {
-		temp->insert(rand()%10, i);
+	LListDequeue<int> temp;
+	int n;
+	cout << "HAY NHAP GIA TRI CUA n: " << endl;
+	cin >> n;
+	for (int i = 0; i < n; ++i) {
+		temp.push_back(rand() % 100);
 	}
-	temp->traverse(
-		[](int& a) {
-			cout << a << " ";
-		}
-	);
-	cout << endl;
-	int k;
-	cout << "HAY NHAP K" << endl;
-	cin >> k;
-	List<int>* temp1 = temp->split(k);
-	temp->traverse(
-		[](int& a) {
-			cout << a << " ";
-		}
-	);
-	cout << endl;
-	temp1->traverse(
-		[](int& a) {
-			cout << a << " ";
-		}
-	);
-	cout << endl;
-	temp1->reverse();
-	temp1->concat(temp);
-	temp1->traverse(
-		[](int& a) {
-			cout << a << " ";
-		}
-	);
-	delete temp1;
-	delete temp;/////////////////////////////
+	while (!temp.empty()) {
+		cout << temp.front() << endl;
+		temp.pop_front();
+	}
 	return 0;
 }

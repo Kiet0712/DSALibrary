@@ -802,7 +802,208 @@ public:
 		head = prev;
 	}
 };
+#define BLOCK_SIZE 32
 template<class T>
 class ArrList : public List<T> {
+protected:
+	T* p;
+	int nE;
+	int cap;
+	void resize(int newnE) {
+		if (newnE <= nE) return;
+		int newCap = ((newnE + BLOCK_SIZE - 1) / BLOCK_SIZE) * BLOCK_SIZE;
+		T* pN = new T[newCap];
+		for (int i = 0; i < nE; ++i) {
+			pN[i] = std::move(p[i]);
+		}
+		delete[] p;
+		p = pN;
+		cap = newCap;
+	}
+public:
+	ArrList():p(nullptr),nE(0),cap(0) {}
+	ArrList(T*p,int nE,int cap) :p(p),nE(nE),cap(cap) {}
+	~ArrList() { this->clear(); }
+	void clear() {
+		if (!empty()) {
+			nE = cap = 0;
+			delete[] p;
+			p = nullptr;
+		}
+	}
+	int size() { return nE; }
+	bool empty() { return !nE; }
+	T& operator[](int idx) {
+		if (idx < 0 || idx >= nE) throw out_of_range("Index out of range");
+		return p[idx];
+	}
+	void insert(const T& data, int idx) {
+		if (idx < 0 || idx > nE) throw out_of_range("Index out of range");
+		else {
+			if (nE == cap) resize(nE + 1);
+			for (int j = nE - 1; j >= idx; --j) p[j + 1] = std::move(p[j]);
+			p[idx] = data;
+			++nE;
+		}
+	}
+	void remove(int idx) {
+		if (idx < 0 || idx >= nE) throw out_of_range("Index out of range");
+		else {
+			for (int i = idx; i < nE; ++i) p[i] = std::move(p[i + 1]);
+			--nE;
+		}
+	}
+	void traverse(function<void(T& data)> op) {
+		for (int i = 0; i < nE; ++i) op(p[i]);
+	}
+	List<T>* split(int idx) {
+		if (idx == nE) return new ArrList();
+		int newnE = nE - idx;
+		T* pN = new T[newnE];
+		for (int i = 0; i < newnE; ++i) pN[i] = std::move(p[i + idx]);
+		this->nE = idx;
+		return new ArrList(pN, newnE, newnE);
+	}
+	void reverse() {
+		int i = 0, j = nE - 1;
+		while (i < j) {
+			T temp(std::move(p[i]));
+			p[i] = std::move(p[j]);
+			p[j] = std::move(temp);
+			++i;
+			--j;
+		}
+	}
+	void concat(List<T>*other) {
+		this->resize(nE + other->size());
+		int i = 0;
+		T** pp = &p;
+		int knE = nE;
+		other->traverse(
+			[&i,&knE,pp](int& data) {
+				(*pp)[i + knE] = data;
+				++i;
+			}
+		);
+		nE = nE + other->size();
+	}
+};
+template<class T>
+class stack {
+public:
+	virtual void push(const T&) = 0;
+	virtual void pop() = 0;
+	virtual T top() = 0;
+	virtual int size() = 0;
+	virtual bool empty() = 0;
+};
+template<class T>
+class queue {
+public:
+	virtual void push(const T&) = 0;
+	virtual void pop() = 0;
+	virtual T front() = 0;
+	virtual int size() = 0;
+	virtual bool empty() = 0;
+};
+template<class T>
+class dequeue {
+public:
+	virtual void push_back(const T&) = 0;
+	virtual void push_front(const T&) = 0;
+	virtual void pop_back() = 0;
+	virtual void pop_front() = 0;
+	virtual T front() = 0;
+	virtual T back() = 0;
+	virtual int size() = 0;
+	virtual bool empty() = 0;
+};
+template<class T>
+class ArrStack : protected ArrList<T>, public stack<T> {
+public:
+	void push(const T& data) {
+		this->insert(data, this->nE);
+	}
+	void pop() {
+		this->remove(this->nE - 1);
+	}
+	T top() {
+		this->operator[](this->nE - 1);
+	}
+	int size() {
+		return this->nE;
+	}
+	bool empty() {
+		return !this->nE;
+	}
+};
+template<class T>
+class LListStack : protected S1LListWOTail<T>, public stack<T> {
+public:
+	void push(const T& data) {
+		this->insert(data,0);
+	}
+	void pop() {
+		this->remove(0);
+	}
+	T top() {
+		this->operator[](0);
+	}
+	int size() {
+		return this->nE;
+	}
+	bool empty() {
+		return !this->nE;
+	}
+};
+template<class T>
+class ArrQueue : protected ArrList<T>, public queue<T> {
 
+};
+template<class T>
+class LListQueue : protected S1LListWTail<T>, public queue<T> {
+public:
+	void push(const T& data) {
+		this->insert(data, this->nE);
+	}
+	void pop() {
+		this->remove(0);
+	}
+	T front() {
+		this->operator[](0);
+	}
+	int size() {
+		return this->nE;
+	}
+	bool empty() {
+		return !this->nE;
+	}
+};
+template<class T>
+class LListDequeue : protected D2LListCir<T>, public dequeue<T> {
+public:
+	void push_back(const T& data) {
+		this->insert(data, this->nE);
+	}
+	void push_front(const T& data) {
+		this->insert(data, 0);
+	}
+	void pop_back() {
+		this->remove(this->nE - 1);
+	}
+	void pop_front() {
+		this->remove(0);
+	}
+	T front() {
+		return this->operator[](0);
+	}
+	T back() {
+		return this->operator[](this->nE - 1);
+	}
+	int size() {
+		return this->nE;
+	}
+	bool empty() {
+		return !this->nE;
+	}
 };
