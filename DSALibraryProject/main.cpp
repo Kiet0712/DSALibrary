@@ -6,16 +6,20 @@
 
 int main() {
 	//do sth with the datastructure
-	LListDequeue<int> temp;
+	ArrQueue<int> temp;
 	int n;
 	cout << "HAY NHAP GIA TRI CUA n: " << endl;
 	cin >> n;
+	temp.reserve(n);
 	for (int i = 0; i < n; ++i) {
-		temp.push_back(rand() % 100);
+		int k = rand() % 100;
+		cout << "Input " << i << " = " << k << endl;
+		temp.push(k);
 	}
-	while (!temp.empty()) {
+	cout << "POP" << endl;
+	for (int i = 0; i < n; ++i) {
 		cout << temp.front() << endl;
-		temp.pop_front();
+		temp.pop();
 	}
-	return 0;
+	return 0;///
 }

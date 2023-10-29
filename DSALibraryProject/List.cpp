@@ -824,6 +824,10 @@ public:
 	ArrList():p(nullptr),nE(0),cap(0) {}
 	ArrList(T*p,int nE,int cap) :p(p),nE(nE),cap(cap) {}
 	~ArrList() { this->clear(); }
+	void reserve(int newCap) {
+		if (newCap <= cap) return;
+		else resize(newCap);
+	}
 	void clear() {
 		if (!empty()) {
 			nE = cap = 0;
@@ -958,7 +962,53 @@ public:
 };
 template<class T>
 class ArrQueue : protected ArrList<T>, public queue<T> {
-
+protected:
+	int Front;
+	int Rear;
+	void resize(int newnE) {
+		if (newnE <= this->nE) return;
+		int newCap = ((newnE + BLOCK_SIZE - 1) / BLOCK_SIZE) * BLOCK_SIZE;
+		if (this->nE == 0) {
+			this->cap = BLOCK_SIZE;
+			this->p = new T[this->cap];
+		}
+		else {
+			T* pN = new T[newCap];
+			for (int i = Front, j = 0; i <= Rear; ++j, ++i) {
+				pN[j] = std::move(this->p[i % this->cap]);
+			}
+			delete[] this->p;
+			this->p = pN;
+			this->cap = newCap;
+			Front = 0;
+			Rear = this->nE - 1;
+		}
+	}
+public:
+	ArrQueue() : ArrList<T>(),Front(0),Rear(-1) {}
+	void reserve(int newCap) {
+		if (newCap <= this->cap) return;
+		else resize(newCap);
+	}
+	void push(const T& data) {
+		if (this->nE == this->cap) this->resize(this->nE + 1);
+		++this->nE;
+		++Rear;
+		this->p[Rear%this->cap] = data;
+	}
+	void pop() {
+		--this->nE;
+		++Front;
+	}
+	T front() {
+		return this->p[Front%this->cap];
+	}
+	int size() {
+		return this->nE;
+	}
+	bool empty() {
+		return !this->nE;
+	}
 };
 template<class T>
 class LListQueue : protected S1LListWTail<T>, public queue<T> {
