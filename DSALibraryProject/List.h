@@ -2,8 +2,77 @@
 #include "main.h"
 
 template<class T>
+class IterBase {
+public:
+	virtual T& operator *() = 0;
+	virtual void operator ++ () = 0;
+	virtual void operator -- () = 0;
+	virtual void operator + (int val) = 0;
+	virtual void operator - (int val) = 0;
+	virtual bool operator == (IterBase* other) = 0;
+	virtual bool operator != (IterBase* other) = 0;
+	virtual void operator = (IterBase* other) = 0;
+};
+template<class T>
+class Iterator {
+protected:
+	IterBase<T>* iter;
+public:
+	Iterator(IterBase<T>* iter) : iter(iter) {}
+	~Iterator() { if (iter != nullptr) delete iter; }
+	T& operator *() {
+		if (iter == nullptr) throw invalid_argument("Segmentation fault");
+		return iter->operator*();
+	}
+	void operator ++() {
+		if (iter == nullptr) throw invalid_argument("Segmentation fault");
+		iter->operator++();
+	}
+	void operator --() {
+		if (iter == nullptr) throw invalid_argument("Segmentation fault");
+		iter->operator--();
+	}
+	Iterator operator++(int) {
+		if(iter == nullptr) throw invalid_argument("Segmentation fault");
+		Iterator rtVal(iter);
+		iter->operator++();
+		return rtVal;
+	}
+	Iterator operator--(int) {
+		if (iter == nullptr) throw invalid_argument("Segmentation fault");
+		Iterator rtVal(iter);
+		iter->operator--();
+		return rtVal;
+	}
+	Iterator& operator + (int val) {
+		if (iter == nullptr) throw invalid_argument("Segmentation fault");
+		iter->operator+(val);
+		return *this;
+	}
+	Iterator& operator - (int val) {
+		if (iter == nullptr) throw invalid_argument("Segmentation fault");
+		iter->operator-(val);
+		return *this;
+	}
+	Iterator operator = (const Iterator& other) {
+		if (iter == nullptr) throw invalid_argument("Segmentation fault");
+		iter->operator=(other.iter);
+		return *this;
+	}
+	bool operator == (const Iterator& other) {
+		if (iter == nullptr) throw invalid_argument("Segmentation fault");
+		return iter->operator==(other.iter);
+	}
+	bool operator != (const Iterator& other) {
+		if (iter == nullptr) throw invalid_argument("Segmentation fault");
+		return iter->operator!=(other.iter);
+	}
+};
+template<class T>
 class List {
 public:
+	virtual Iterator<T> begin() = 0;
+	virtual Iterator<T> end() = 0;
 	virtual int size() = 0;
 	virtual bool empty() = 0;
 	virtual void insert(const T&, int) = 0;
@@ -26,7 +95,65 @@ protected:
 	};
 	Node* head;
 	int nE;
+	class S1LListWOTailIter : public IterBase<T> {
+	protected:
+		Node* curr;
+		int idx;
+		S1LListWOTail<T>* list;
+	public:
+		S1LListWOTailIter(Node* curr, int idx, S1LListWOTail<T>* list) : curr(curr),idx(idx),list(list) {}
+		T& operator *() {
+			if (curr == nullptr) throw invalid_argument("Segmentation fault");
+			else return curr->data;
+		}
+		void operator ++ () {
+			if (idx == list->size() - 1) {
+				++idx;
+			}
+			else if (idx == list->size()) return;
+			else {
+				++idx;
+				curr = curr->next;
+			}
+		}
+		void operator -- () {
+			throw invalid_argument("This iterator don't support backward operator");
+		}
+		void operator + (int val) {
+			if (idx + val >= list->size()) throw invalid_argument("Segmentation fault");
+			idx += val;
+			while (val) {
+				curr = curr->next;
+				--val;
+			}
+		}
+		void operator - (int val) {
+			throw invalid_argument("This iterator don't support backward operator");
+		}
+		bool operator == (IterBase<T>* other) {
+			if (typeid(*other).name() != typeid(*this).name()) return false;
+			else return curr == ((S1LListWOTailIter*)(void*)other)->curr && idx == ((S1LListWOTailIter*)(void*)other)->idx && list == ((S1LListWOTailIter*)(void*)other)->list;
+		}
+		bool operator != (IterBase<T>* other) {
+			if (typeid(*other).name() != typeid(*this).name()) return true;
+			else return curr != ((S1LListWOTailIter*)(void*)other)->curr || idx != ((S1LListWOTailIter*)(void*)other)->idx || list != ((S1LListWOTailIter*)(void*)other)->list;
+		}
+		void operator = (IterBase<T>* other) {
+			if (typeid(*other).name() != typeid(*this).name()) throw invalid_argument("Different iterator type");
+			curr = ((S1LListWOTailIter*)(void*)other)->curr;
+			idx = ((S1LListWOTailIter*)(void*)other)->idx;
+			list = ((S1LListWOTailIter*)(void*)other)->list;
+		}
+	};
 public:
+	Iterator<T> begin() {
+		return Iterator<T>(new S1LListWOTailIter(head, 0, this));
+	}
+	Iterator<T> end() {
+		Node* temp = head;
+		for (int i = 0; i < nE - 1; ++i) temp = temp->next;
+		return Iterator<T>(new S1LListWOTailIter(temp, nE, this));
+	}
 	S1LListWOTail(Node* head, int nE) : head(head), nE(nE) {}
 	S1LListWOTail() : head(nullptr), nE(0) {}
 	~S1LListWOTail() { this->clear(); }
