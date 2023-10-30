@@ -268,7 +268,63 @@ protected:
 	Node* head;
 	Node* tail;
 	int nE;
+	class S1LListWTailIter : public IterBase<T> {
+	protected:
+		Node* curr;
+		int idx;
+		S1LListWTail<T>* list;
+	public:
+		S1LListWTailIter(Node* curr, int idx, S1LListWTail<T>* list) : curr(curr), idx(idx), list(list) {}
+		T& operator *() {
+			if (curr == nullptr) throw invalid_argument("Segmentation fault");
+			else return curr->data;
+		}
+		void operator ++ () {
+			if (idx == list->size() - 1) {
+				++idx;
+			}
+			else if (idx == list->size()) return;
+			else {
+				++idx;
+				curr = curr->next;
+			}
+		}
+		void operator -- () {
+			throw invalid_argument("This iterator don't support backward operator");
+		}
+		void operator + (int val) {
+			if (idx + val >= list->size()) throw invalid_argument("Segmentation fault");
+			idx += val;
+			while (val) {
+				curr = curr->next;
+				--val;
+			}
+		}
+		void operator - (int val) {
+			throw invalid_argument("This iterator don't support backward operator");
+		}
+		bool operator == (IterBase<T>* other) {
+			if (typeid(*other).name() != typeid(*this).name()) return false;
+			else return curr == ((S1LListWTailIter*)(void*)other)->curr && idx == ((S1LListWTailIter*)(void*)other)->idx && list == ((S1LListWTailIter*)(void*)other)->list;
+		}
+		bool operator != (IterBase<T>* other) {
+			if (typeid(*other).name() != typeid(*this).name()) return true;
+			else return curr != ((S1LListWTailIter*)(void*)other)->curr || idx != ((S1LListWTailIter*)(void*)other)->idx || list != ((S1LListWTailIter*)(void*)other)->list;
+		}
+		void operator = (IterBase<T>* other) {
+			if (typeid(*other).name() != typeid(*this).name()) throw invalid_argument("Different iterator type");
+			curr = ((S1LListWTailIter*)(void*)other)->curr;
+			idx = ((S1LListWTailIter*)(void*)other)->idx;
+			list = ((S1LListWTailIter*)(void*)other)->list;
+		}
+	};
 public:
+	Iterator<T> begin() {
+		return Iterator<T>(new S1LListWTailIter(head, 0, this));
+	}
+	Iterator<T> end() {
+		return Iterator<T>(new S1LListWTailIter(tail, nE, this));
+	}
 	S1LListWTail(Node* head, Node* tail, int nE) :head(head), tail(tail), nE(nE) {}
 	S1LListWTail() : head(nullptr), tail(nullptr), nE(0) {}
 	~S1LListWTail() { this->clear(); }
@@ -404,7 +460,77 @@ protected:
 	};
 	Node* head;
 	int nE;
+	class D2LListWOTailIter : public IterBase<T> {
+	protected:
+		Node* curr;
+		int idx;
+		D2LListWOTail<T>* list;
+	public:
+		D2LListWOTailIter(Node* curr, int idx, D2LListWOTail<T>* list) : curr(curr), idx(idx), list(list) {}
+		T& operator *() {
+			if (curr == nullptr) throw invalid_argument("Segmentation fault");
+			else return curr->data;
+		}
+		void operator ++ () {
+			if (idx == list->size() - 1) {
+				++idx;
+			}
+			else if (idx == list->size()) return;
+			else {
+				++idx;
+				curr = curr->next;
+			}
+		}
+		void operator -- () {
+			if (idx == 1) {
+				--idx;
+			}
+			else if (idx == 0) return;
+			else {
+				--idx;
+				curr = curr->prev;
+			}
+		}
+		void operator + (int val) {
+			if (idx + val >= list->size()) throw invalid_argument("Segmentation fault");
+			idx += val;
+			while (val) {
+				curr = curr->next;
+				--val;
+			}
+		}
+		void operator - (int val) {
+			if (idx - val < 0) throw invalid_argument("Segmentation fault");
+			idx -= val;
+			while (val) {
+				curr = curr->prev;
+				--val;
+			}
+		}
+		bool operator == (IterBase<T>* other) {
+			if (typeid(*other).name() != typeid(*this).name()) return false;
+			else return curr == ((D2LListWOTailIter*)(void*)other)->curr && idx == ((D2LListWOTailIter*)(void*)other)->idx && list == ((D2LListWOTailIter*)(void*)other)->list;
+		}
+		bool operator != (IterBase<T>* other) {
+			if (typeid(*other).name() != typeid(*this).name()) return true;
+			else return curr != ((D2LListWOTailIter*)(void*)other)->curr || idx != ((D2LListWOTailIter*)(void*)other)->idx || list != ((D2LListWOTailIter*)(void*)other)->list;
+		}
+		void operator = (IterBase<T>* other) {
+			if (typeid(*other).name() != typeid(*this).name()) throw invalid_argument("Different iterator type");
+			curr = ((D2LListWOTailIter*)(void*)other)->curr;
+			idx = ((D2LListWOTailIter*)(void*)other)->idx;
+			list = ((D2LListWOTailIter*)(void*)other)->list;
+		}
+	};
 public:
+	Iterator<T> begin() {
+		return Iterator<T>(new D2LListWOTailIter(head, 0, this));
+	}
+	Iterator<T> end() {
+		Node* temp = head;
+		for (int i = 0; i < nE - 1; ++i) temp = temp->next;
+		return Iterator<T>(new D2LListWOTailIter(temp, nE, this));
+	}
 	D2LListWOTail(Node* head, int nE) : head(head), nE(nE) {}
 	D2LListWOTail() : head(nullptr), nE(0) {}
 	~D2LListWOTail() { this->clear(); }
@@ -524,7 +650,75 @@ protected:
 	Node* head;
 	Node* tail;
 	int nE;
+	class D2LListWTailIter : public IterBase<T> {
+	protected:
+		Node* curr;
+		int idx;
+		D2LListWTail<T>* list;
+	public:
+		D2LListWTailIter(Node* curr, int idx, D2LListWTail<T>* list) : curr(curr), idx(idx), list(list) {}
+		T& operator *() {
+			if (curr == nullptr) throw invalid_argument("Segmentation fault");
+			else return curr->data;
+		}
+		void operator ++ () {
+			if (idx == list->size() - 1) {
+				++idx;
+			}
+			else if (idx == list->size()) return;
+			else {
+				++idx;
+				curr = curr->next;
+			}
+		}
+		void operator -- () {
+			if (idx == 1) {
+				--idx;
+			}
+			else if (idx == 0) return;
+			else {
+				--idx;
+				curr = curr->prev;
+			}
+		}
+		void operator + (int val) {
+			if (idx + val >= list->size()) throw invalid_argument("Segmentation fault");
+			idx += val;
+			while (val) {
+				curr = curr->next;
+				--val;
+			}
+		}
+		void operator - (int val) {
+			if (idx - val < 0) throw invalid_argument("Segmentation fault");
+			idx -= val;
+			while (val) {
+				curr = curr->prev;
+				--val;
+			}
+		}
+		bool operator == (IterBase<T>* other) {
+			if (typeid(*other).name() != typeid(*this).name()) return false;
+			else return curr == ((D2LListWTailIter*)(void*)other)->curr && idx == ((D2LListWTailIter*)(void*)other)->idx && list == ((D2LListWTailIter*)(void*)other)->list;
+		}
+		bool operator != (IterBase<T>* other) {
+			if (typeid(*other).name() != typeid(*this).name()) return true;
+			else return curr != ((D2LListWTailIter*)(void*)other)->curr || idx != ((D2LListWTailIter*)(void*)other)->idx || list != ((D2LListWTailIter*)(void*)other)->list;
+		}
+		void operator = (IterBase<T>* other) {
+			if (typeid(*other).name() != typeid(*this).name()) throw invalid_argument("Different iterator type");
+			curr = ((D2LListWTailIter*)(void*)other)->curr;
+			idx = ((D2LListWTailIter*)(void*)other)->idx;
+			list = ((D2LListWTailIter*)(void*)other)->list;
+		}
+	};
 public:
+	Iterator<T> begin() {
+		return Iterator<T>(new D2LListWTailIter(head, 0, this));
+	}
+	Iterator<T> end() {
+		return Iterator<T>(new D2LListWTailIter(tail, nE, this));
+	}
 	D2LListWTail() : head(nullptr), tail(nullptr), nE(0) {}
 	D2LListWTail(Node* head, Node* tail, int nE) : head(head), tail(tail), nE(nE) {}
 	~D2LListWTail() { this->clear(); }
@@ -561,7 +755,10 @@ public:
 		if (idx < 0 || idx > nE) throw out_of_range("Index out of range");
 		else if (idx == nE) {
 			if (nE == 0) head = tail = new Node(data);
-			else tail = tail->next = new Node(data);
+			else {
+				tail->next = new Node(data,nullptr,tail);
+				tail = tail->next;
+			}
 			++nE;
 		}
 		else {
@@ -667,7 +864,54 @@ protected:
 	};
 	Node* head;
 	int nE;
+	class S1LListCirIter : public IterBase<T> {
+	protected:
+		Node* curr;
+		S1LListCir<T>* list;
+	public:
+		S1LListCirIter(Node* curr = nullptr, S1LListCir<T>*list = nullptr) : curr(curr),list(list) {}
+		T& operator *() {
+			if (curr == nullptr) throw invalid_argument("Segmentation fault");
+			else return curr->data;
+		}
+		void operator ++ () {
+			curr = curr->next;
+		}
+		void operator -- () {
+			throw invalid_argument("This iterator don't support backward operator");
+		}
+		void operator + (int val) {
+			while (val) {
+				curr = curr->next;
+				--val;
+			}
+		}
+		void operator - (int val) {
+			throw invalid_argument("This iterator don't support backward operator");
+		}
+		bool operator == (IterBase<T>* other) {
+			if (typeid(*other).name() != typeid(*this).name()) return false;
+			else return curr == ((S1LListCirIter*)(void*)other)->curr && list == ((S1LListCirIter*)(void*)other)->list;
+		}
+		bool operator != (IterBase<T>* other) {
+			if (typeid(*other).name() != typeid(*this).name()) return true;
+			else return !(curr == ((S1LListCirIter*)(void*)other)->curr && list == ((S1LListCirIter*)(void*)other)->list);
+		}
+		void operator = (IterBase<T>* other) {
+			if (typeid(*other).name() != typeid(*this).name()) throw invalid_argument("Different iterator type");
+			curr = ((S1LListCirIter*)(void*)other)->curr;
+			list = ((S1LListCirIter*)(void*)other)->list;
+		}
+	};
 public:
+	Iterator<T> begin() {
+		return Iterator<T>(new S1LListCirIter(head, this));
+	}
+	Iterator<T> end() {
+		Node* temp = head;
+		for (int i = 0; i < nE - 1; ++i) temp = temp->next;
+		return Iterator<T>(new S1LListCirIter(temp, this));
+	}
 	S1LListCir() : head(nullptr), nE(0) {}
 	S1LListCir(Node* head, int nE) : head(head), nE(nE) {}
 	~S1LListCir() { this->clear(); }
