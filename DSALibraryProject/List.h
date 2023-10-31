@@ -32,18 +32,6 @@ public:
 		if (iter == nullptr) throw invalid_argument("Segmentation fault");
 		iter->operator--();
 	}
-	Iterator operator++(int) {
-		if(iter == nullptr) throw invalid_argument("Segmentation fault");
-		Iterator rtVal(iter);
-		iter->operator++();
-		return rtVal;
-	}
-	Iterator operator--(int) {
-		if (iter == nullptr) throw invalid_argument("Segmentation fault");
-		Iterator rtVal(iter);
-		iter->operator--();
-		return rtVal;
-	}
 	Iterator& operator + (int val) {
 		if (iter == nullptr) throw invalid_argument("Segmentation fault");
 		iter->operator+(val);
@@ -54,10 +42,9 @@ public:
 		iter->operator-(val);
 		return *this;
 	}
-	Iterator operator = (const Iterator& other) {
+	void operator = (const Iterator& other) {
 		if (iter == nullptr) throw invalid_argument("Segmentation fault");
 		iter->operator=(other.iter);
-		return *this;
 	}
 	bool operator == (const Iterator& other) {
 		if (iter == nullptr) throw invalid_argument("Segmentation fault");
@@ -120,10 +107,8 @@ protected:
 			throw invalid_argument("This iterator don't support backward operator");
 		}
 		void operator + (int val) {
-			if (idx + val >= list->size()) throw invalid_argument("Segmentation fault");
-			idx += val;
 			while (val) {
-				curr = curr->next;
+				this->operator++();
 				--val;
 			}
 		}
@@ -293,10 +278,8 @@ protected:
 			throw invalid_argument("This iterator don't support backward operator");
 		}
 		void operator + (int val) {
-			if (idx + val >= list->size()) throw invalid_argument("Segmentation fault");
-			idx += val;
 			while (val) {
-				curr = curr->next;
+				this->operator++();
 				--val;
 			}
 		}
@@ -492,18 +475,14 @@ protected:
 			}
 		}
 		void operator + (int val) {
-			if (idx + val >= list->size()) throw invalid_argument("Segmentation fault");
-			idx += val;
 			while (val) {
-				curr = curr->next;
+				this->operator++();
 				--val;
 			}
 		}
 		void operator - (int val) {
-			if (idx - val < 0) throw invalid_argument("Segmentation fault");
-			idx -= val;
 			while (val) {
-				curr = curr->prev;
+				this->operator--();
 				--val;
 			}
 		}
@@ -682,18 +661,14 @@ protected:
 			}
 		}
 		void operator + (int val) {
-			if (idx + val >= list->size()) throw invalid_argument("Segmentation fault");
-			idx += val;
 			while (val) {
-				curr = curr->next;
+				this->operator++();
 				--val;
 			}
 		}
 		void operator - (int val) {
-			if (idx - val < 0) throw invalid_argument("Segmentation fault");
-			idx -= val;
 			while (val) {
-				curr = curr->prev;
+				this->operator--();
 				--val;
 			}
 		}
@@ -882,7 +857,7 @@ protected:
 		}
 		void operator + (int val) {
 			while (val) {
-				curr = curr->next;
+				this->operator++();
 				--val;
 			}
 		}
@@ -1031,7 +1006,55 @@ protected:
 	};
 	Node* head;
 	int nE;
+	class D2LListCirIter : public IterBase<T> {
+	protected:
+		Node* curr;
+		D2LListCir<T>* list;
+	public:
+		D2LListCirIter(Node* curr = nullptr, D2LListCir<T>* list = nullptr) : curr(curr),list(list) {}
+		T& operator *() {
+			if (curr == nullptr) throw invalid_argument("Segmentation fault");
+			else return curr->data;
+		}
+		void operator ++ () {
+			curr = curr->next;
+		}
+		void operator -- () {
+			curr = curr->prev;
+		}
+		void operator + (int val) {
+			while (val) {
+				this->operator++();
+				--val;
+			}
+		}
+		void operator - (int val) {
+			while (val) {
+				this->operator--();
+				--val;
+			}
+		}
+		bool operator == (IterBase<T>* other) {
+			if (typeid(*other).name() != typeid(*this).name()) return false;
+			else return curr == ((D2LListCirIter*)(void*)other)->curr && list == ((D2LListCirIter*)(void*)other)->list;
+		}
+		bool operator != (IterBase<T>* other) {
+			if (typeid(*other).name() != typeid(*this).name()) return true;
+			else return !(curr == ((D2LListCirIter*)(void*)other)->curr && list == ((D2LListCirIter*)(void*)other)->list);
+		}
+		void operator = (IterBase<T>* other) {
+			if (typeid(*other).name() != typeid(*this).name()) throw invalid_argument("Different iterator type");
+			curr = ((D2LListCirIter*)(void*)other)->curr;
+			list = ((D2LListCirIter*)(void*)other)->list;
+		}
+	};
 public:
+	Iterator<T> begin() {
+		return Iterator<T>(new D2LListCirIter(head, this));
+	}
+	Iterator<T> end() {
+		return Iterator<T>(new D2LListCirIter(head->prev, this));
+	}
 	D2LListCir() : head(nullptr), nE(0) { }
 	D2LListCir(Node* head, int nE) : head(head), nE(nE) {}
 	~D2LListCir() { this->clear(); }
@@ -1192,7 +1215,79 @@ protected:
 		p = pN;
 		cap = newCap;
 	}
+	class ArrListIter : public IterBase<T> {
+	protected:
+		T* curr;
+		ArrList<T>* list;
+		int idx;
+	public:
+		ArrListIter(int idx, T*curr, ArrList<T>* list) : idx(idx),curr(curr),list(list) {}
+		T& operator *() {
+			if (curr == nullptr) throw invalid_argument("Segmentation fault");
+			else return *curr;
+		}
+		void operator ++ () {
+			if (idx == list->nE) throw invalid_argument("Segmentation fault");
+			else if (idx == list->nE - 1) {
+				++idx;
+			}
+			else if (idx == -1) {
+				curr = list->p;
+				++idx;
+			}
+			else {
+				++idx;
+				++curr;
+			}
+		}
+		void operator -- () {
+			if (idx == -1) throw invalid_argument("Segmentation fault");
+			else if (idx == 0) {
+				--idx;
+			}
+			else if (idx == list->nE) {
+				curr = list->p + list->nE - 1;
+				--idx;
+			}
+			else {
+				--idx;
+				--curr;
+			}
+		}
+		void operator + (int val) {
+			while (val) {
+				this->operator++();
+				--val;
+			}
+		}
+		void operator - (int val) {
+			while (val) {
+				this->operator--();
+				--val;
+			}
+		}
+		bool operator == (IterBase<T>* other) {
+			if (typeid(*other).name() != typeid(*this).name()) return false;
+			else return curr == ((ArrListIter*)(void*)other)->curr && list == ((ArrListIter*)(void*)other)->list && idx == ((ArrListIter*)(void*)other)->idx;
+		}
+		bool operator != (IterBase<T>* other) {
+			if (typeid(*other).name() != typeid(*this).name()) return true;
+			else return !(curr == ((ArrListIter*)(void*)other)->curr && list == ((ArrListIter*)(void*)other)->list && idx == ((ArrListIter*)(void*)other)->idx);
+		}
+		void operator = (IterBase<T>* other) {
+			if (typeid(*other).name() != typeid(*this).name()) throw invalid_argument("Different iterator type");
+			curr = ((ArrListIter*)(void*)other)->curr;
+			list = ((ArrListIter*)(void*)other)->list;
+			idx = ((ArrListIter*)(void*)other)->idx;
+		}
+	};
 public:
+	Iterator<T> begin() {
+		return Iterator<T>(new ArrListIter(0, p, this));
+	}
+	Iterator<T> end() {
+		return Iterator<T>(new ArrListIter(nE, p+nE-1, this));
+	}
 	ArrList() :p(nullptr), nE(0), cap(0) {}
 	ArrList(T* p, int nE, int cap) :p(p), nE(nE), cap(cap) {}
 	~ArrList() { this->clear(); }
