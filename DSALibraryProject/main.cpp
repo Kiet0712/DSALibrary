@@ -1,15 +1,20 @@
 #include "main.h"
-//#include "Tree.h"
+#include "Tree.h"
 #include "Sort.h"
 #include "List.h"
 
 
 int main() {
-	ArrList<int> temp;
-	for (int i = 0; i < 20; ++i) temp.insert(i, i);
-	//for (auto k : temp) cout << setw(5) << k;
-	for (auto start = temp.begin(), end = temp.end(); start != end; ++start) {
-		cout << setw(5) << *start;
+	AVL<int> tree;
+	int v[] = { 7,49,73,58,30,72,44,78,23,9 };
+	for (int i = 0; i < 10; ++i) {
+		tree.insert(v[i]);
 	}
+	tree.traverse(
+		[](int& a) {//
+			cout << setw(5) << a;
+		}, AVL<int>::DFS_NLR
+	);
+	cout << endl;
 	return 0;///////////
 }
