@@ -16,5 +16,12 @@ int main() {
 		}, AVL<int>::DFS_NLR
 	);
 	cout << endl;
+	tree.remove(30);
+	tree.traverse(
+		[](int& a) {//
+			cout << setw(5) << a;
+		}, AVL<int>::DFS_NLR
+	);
+	cout << endl;
 	return 0;///////////
 }

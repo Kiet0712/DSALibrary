@@ -2,6 +2,8 @@
 #include "main.h"
 #include "List.h"
 
+
+//BST
 template<class T>
 class BST {
 protected:
@@ -290,6 +292,7 @@ protected:
 			return true;
 		}
 		else {
+			if (root->data == data) return false;
 			if (root->data > data) {
 				if (insert(data,root->left)) {
 					return balanceLeft(root);
@@ -309,7 +312,49 @@ protected:
 		else return nullptr;
 	}
 	bool remove(Node*& root, const T& data) {
-		
+		if (root) {
+			if (root->data == data) {
+				if (!root->left && !root->right) {
+					delete root;
+					root = nullptr;
+					return true;
+				}
+				else if (root->left && !root->right) {
+					Node* temp = root;
+					root = root->left;
+					delete temp;
+					return true;
+				}
+				else if (!root->left && root->right) {
+					Node* temp = root;
+					root = root->right;
+					delete temp;
+					return true;
+				}
+				else {
+					Node* p = root->right;
+					while (p->left) {
+						p = p->left;
+					}
+					root->data = p->data;
+					if (remove(root->right, root->data)) return !balanceLeft(root);
+					return false;
+				}
+			}
+			else if (root->data > data) {
+				if (remove( root->left, data)) {
+					return !balanceRight(root);
+				}
+				return false;
+			}
+			else {
+				if (remove( root->right, data)) {
+					return !balanceLeft(root);
+				}
+				return false;
+			}
+		}
+		return false;
 	}
 public:
 	AVL() : root(nullptr) { }
@@ -410,3 +455,9 @@ protected:
 		}
 	}
 };
+
+
+
+
+
+//BTree
