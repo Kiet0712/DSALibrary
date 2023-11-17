@@ -460,4 +460,54 @@ protected:
 
 
 
-//BTree
+//Heap
+template<class T>
+void heapUp(T* pD, int idx) {
+	while (idx > 0) {
+		int pIdx = (idx - 1) >> 2;
+		if (pD[idx] <= pD[pIdx]) return;
+		T temp(std::move(pD[idx]));
+		pD[idx] = std::move(pD[pIdx]);
+		pD[pIdx] = std::move(temp);
+		idx = pIdx;
+	}
+}
+template<class T>
+void heapDown(T* pD, int N, int idx = 0) {
+	while (idx < N) {
+		int cIdx = idx * 2 + 1;
+		if (cIdx >= N) return;
+		if (cIdx + 1 < N) {
+			if (pD[cIdx + 1] > pD[cIdx]) cIdx++;
+		}
+		if (pD[idx] >= pD[cIdx]) return;
+		else {
+			T temp(std::move(pD[idx]));
+			pD[idx] = std::move(pD[cIdx]);
+			pD[cIdx] = std::move(temp);
+			idx = cIdx;
+		}
+	}
+}
+template<class T>
+void buildHeapV1(T* pD, int N) {
+	//O(nlogn)
+	for (int i = 1; i < N; ++i) heapUp(pD, i);
+}
+template<class T>
+void buildHeapV2(T* pD, int N) {
+	//O(n)
+	for (int i = N / 2; i > -1; --i) heapDown(pD, i);
+}
+template<class T>
+void heapSort(T* pD, int N) {
+	buildHeapV2(pD, N);
+	--N;
+	while(N>0) {
+		T temp(std::move(*pD));
+		*pD = std::move(pD[N]);
+		pD[N] = std::move(temp);
+		heapDown(pD, N);
+		--N;
+	}
+}
